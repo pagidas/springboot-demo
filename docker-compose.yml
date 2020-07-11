@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  db:
+    container_name: persons_db
+    restart: always
+    build: postgres
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+    - 5432:5432
+  crud-service:
+    depends_on:
+      - db
+    build: .
+    container_name: persons_api
+    ports:
+    - 8080:8080
