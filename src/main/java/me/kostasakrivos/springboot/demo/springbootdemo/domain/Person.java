@@ -13,14 +13,14 @@ import java.util.UUID;
 public class Person {
 
     @JsonProperty
-    private UUID id;
+    private final UUID id;
 
     @JsonProperty
-    private String firstName;
+    private final String firstName;
 
     @JsonProperty
-    private String lastName;
+    private final String lastName;
 
     @JsonProperty
-    private String email;
+    private final String email;
 }
