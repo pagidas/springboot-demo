@@ -1,2 +1,0 @@
-INSERT INTO person (id, first_name, last_name, email) VALUES (random_uuid(), 'John', 'Doe', 'john.doe@gmail.com');
-INSERT INTO person (id, first_name, last_name, email) VALUES (random_uuid(), 'Mr.', 'Robot', 'mr.robot@gmail.com');

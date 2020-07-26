@@ -1,15 +1,18 @@
-package me.kostasakrivos.springboot.demo.springbootdemo;
+package me.kostasakrivos.springboot.demo.springbootdemo.integration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.kostasakrivos.springboot.demo.springbootdemo.SpringbootDemoApplication;
 import me.kostasakrivos.springboot.demo.springbootdemo.domain.Person;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -22,10 +25,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(classes = SpringbootDemoApplication.class)
 @AutoConfigureMockMvc
 @TestPropertySource("classpath:application.yml")
-@Sql("classpath:db.test/dummy_data_persons.sql")
 class PersonsApiIntegrationTests {
 
     @Autowired
@@ -34,8 +36,35 @@ class PersonsApiIntegrationTests {
     @Autowired
     private ObjectMapper mapper;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private String api(String uri) {
         return "/api/v1" + uri;
+    }
+
+    @BeforeEach
+    public void setUp() {
+        jdbcTemplate.update(
+                "INSERT INTO PERSON (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
+                UUID.randomUUID(),
+                "John",
+                "Doe",
+                "john.doe@gmail.com"
+        );
+
+        jdbcTemplate.update(
+                "INSERT INTO PERSON (id, first_name, last_name, email) VALUES (?, ?, ?,?)",
+                UUID.randomUUID(),
+                "Mr.",
+                "Robot",
+                "mr.robot@gmail.com"
+        );
+    }
+
+    @AfterEach
+    public void cleanUp() {
+        jdbcTemplate.update("DELETE FROM PERSON");
     }
 
     @Test
@@ -47,7 +76,7 @@ class PersonsApiIntegrationTests {
     }
 
     @Test
-    public void getPersons() throws Exception {
+    public void canRequestAllPersons() throws Exception {
         String bodyString = mockMvc.perform(get(api("/persons")))
                 .andReturn()
                 .getResponse()
@@ -59,7 +88,7 @@ class PersonsApiIntegrationTests {
     }
 
     @Test
-    public void getPersonById() throws Exception {
+    public void canRequestPersonById() throws Exception {
         String bodyString = mockMvc.perform(get(api("/persons")))
                 .andReturn()
                 .getResponse()
@@ -74,11 +103,13 @@ class PersonsApiIntegrationTests {
     }
 
     @Test
-    public void deletePersonById() throws Exception {
+    public void canRequestDeletePersonById() throws Exception {
         String bodyString = mockMvc.perform(get(api("/persons")))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
+
+        System.out.println(bodyString);
 
         List<Person> persons = mapper.readValue(bodyString, new TypeReference<>() {});
 
@@ -89,7 +120,7 @@ class PersonsApiIntegrationTests {
     }
 
     @Test
-    public void newPerson() throws Exception {
+    public void canRequestNewPerson() throws Exception {
         String newPersonInJson = mapper.writeValueAsString(
             new Person(UUID.randomUUID(), "Kostas", "Akrivos", "test@gmail.com")
         );
@@ -100,7 +131,7 @@ class PersonsApiIntegrationTests {
     }
 
     @Test
-    public void updatePerson() throws Exception {
+    public void canRequestUpdatePersonById() throws Exception {
         String bodyString = mockMvc.perform(get(api("/persons")))
                 .andReturn()
                 .getResponse()
